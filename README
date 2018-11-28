@@ -1,1 +1,32 @@
-First commit
+Our package will scrape US News university rankings, including the ranking, names, tuition, endowment, year founded, religious affiliation, amongst other aspects.
+
+A dataframe with all US national universities (public and private) will be created, and some visualization (plots, graphs, etc) will also be outputted. 
+
+Since US News rankings change at least annually, this package can be utilized to scrape updated university information.
+
+Each of us will complete the following:
+Lucas: 
+1. Sentiment analysis with Twitter's API (eg. given a word, how often and in what capacity does that word show up in the sample?)
+2. Overall code for scraping data
+3. File layout
+
+Kitty:
+1. Scraping individual university pages
+2. Overall code for scraping data
+3. Vignette
+
+Charles:
+1. Data cleaning for visualization
+2. Visualization (plots, graphs, etc)
+3. File layout
+
+William:
+1. Data cleaning for visualization
+2. Visualization (plots, graphs, etc)
+3. File layout
+
+
+- sentiment analysis functions;
+- visualization functions (e.g., plotting a map showing the location of a specficic university);
+- get the variables that were not working (acceptance rate, etc.);
+- calculation functions.
