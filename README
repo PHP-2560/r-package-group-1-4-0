@@ -24,3 +24,9 @@ William:
 1. Data cleaning for visualization
 2. Visualization (plots, graphs, etc)
 3. File layout
+
+
+- sentiment analysis functions;
+- visualization functions (e.g., plotting a map showing the location of a specficic university);
+- get the variables that were not working (acceptance rate, etc.);
+- calculation functions.
