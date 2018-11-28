@@ -72,14 +72,6 @@ get_grad_rate=function(info){
   grad = str_extract(grad, "/d+")
   return(grad)
 }
-get_ranking=function(details){
-  ranking = details[1]
-  ranking = str_replace_all(ranking, "\n", "")
-  ranking = str_remove_all(ranking, pattern = "/s*")
-  ranking = str_remove_all(ranking, regex("[a-z#]"))
-  ranking = str_extract(ranking, "/d+?-/d+")
-  return(ranking)
-}
 get_score=function(details){
   score = details[2]
   score = str_remove_all(score, regex("[a-zA-Z]"))
@@ -140,7 +132,6 @@ median_start_sal = rep(NA, length(universities))
 acc_rate = rep(NA, length(universities))
 stu_fac_ratio = rep(NA, length(universities))
 grad_rate = rep(NA, length(universities))
-ranking = rep(NA, length(universities))
 score = rep(NA, length(universities))
 location = rep(NA, length(universities))
 tuition = rep(NA, length(universities))
@@ -160,7 +151,6 @@ for (i in 1:length(universities)){
   acc_rate[i] = get_acceptance_rate(info2)
   stu_fac_ratio[i] = get_stu_fac_ratio(info2)
   grad_rate[i] = get_grad_rate(info2)
-  ranking[i] = get_ranking(details)
   score[i] = get_score(details)
   location[i] = get_location(details)
   tuition[i] = get_tuition(details)
@@ -177,13 +167,31 @@ df = data.frame(universities,
                 acc_rate,
                 stu_fac_ratio,
                 grad_rate,
-                ranking,
                 score,
                 location,
                 tuition,
                 room_board,
                 enrollment
 )
+
+colnames(df) = c("University", 
+                 "Year_Founded", 
+                 "Religion", 
+                 "Endowment", 
+                 "School_Type", 
+                 "Median_Start_Sal", 
+                 "Acc_Rate", 
+                 "Stu_Fac_Ratio", 
+                 "Graduation_Rate",
+                 "Score",
+                 "Location",
+                 "Tuition",
+                 "Room_Board",
+                 "Enrollment"
+)
+
+df = df %>%
+  mutate(Ranking = row_number())
 
 #Visualizations 
 
@@ -294,9 +302,8 @@ df.final$year_founded = as.integer(as.character(df.final$year_founded)) #data cl
 #str(df.final)
 df.final$year_founded = as.integer(as.character(df.final$year_founded)) #data cleaning, changing from factor to numeric
 
+
 Plot4 = ggplot(data = df.final, aes(x = year_founded, y = endowment, col = school_type)) + 
-  geom_point() +xlab("Year the School was Founded") + ylab("School Endowment") +
-  Plot4 = ggplot(data = df.final, aes(x = year_founded, y = endowment, col = school_type)) + 
   geom_point() +xlab("Year the School was Founded") + ylab("School Endowment") +
   geom_smooth(aes(col = school_type), se = F) + labs(title = "Scatterplot of Year Founded vs Endowment")
 
@@ -333,8 +340,6 @@ pie_chart
 #This pie_chart shows a shocking disparity between wealth. It clearly shows that nearly 10 out of all 200 schools 
 # hold wealth for nearly half of all of the schools endowments combined! Roughly sitting around 40%, the top 10
 # universities in the ranking around for almost half of all the total money at these schools.
-
-
 
 
 
