@@ -174,7 +174,7 @@ df = data.frame(universities,
                 enrollment
 )
 
-rownames(df) = c("University", 
+colnames(df) = c("University", 
                  "Year_Founded", 
                  "Religion", 
                  "Endowment", 
