@@ -81,6 +81,13 @@ get_twitter_feelings = function(string, n_tweets = 100, since_date = Sys.Date() 
   cat(utf8_format(emoji))
 }
 
+show_tw = function(string, n_tweets = 1){
+  invisible(capture.output(setup_tweets()))
+  check_packages(c("tidytext", "twitteR"))
+  twt = twitteR::searchTwitter(string, n = n_tweets, since = as.character(Sys.Date() - 30))
+  df_tw = twitteR::twListToDF(twt)
+  print(df_tw$text)
+}
 
 colnames(df) = c("University", 
                  "Year_Founded", 
