@@ -8,15 +8,19 @@ Each of us will complete the following:
 Lucas: 
 1. Sentiment analysis with Twitter's API (eg. given a word, how often and in what capacity does that word show up in the sample?)
 2. Overall code for scraping data
+3. File layout
 
 Kitty:
 1. Scraping individual university pages
 2. Overall code for scraping data
+3. Vignette
 
 Charles:
 1. Data cleaning for visualization
 2. Visualization (plots, graphs, etc)
+3. File layout
 
 William:
 1. Data cleaning for visualization
 2. Visualization (plots, graphs, etc)
+3. File layout
