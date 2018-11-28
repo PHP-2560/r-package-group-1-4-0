@@ -174,7 +174,7 @@ df = data.frame(universities,
                 enrollment
 )
 
-rownames(df) = c("University", 
+colnames(df) = c("University", 
                  "Year_Founded", 
                  "Religion", 
                  "Endowment", 
@@ -302,9 +302,8 @@ df.final$year_founded = as.integer(as.character(df.final$year_founded)) #data cl
 #str(df.final)
 df.final$year_founded = as.integer(as.character(df.final$year_founded)) #data cleaning, changing from factor to numeric
 
+
 Plot4 = ggplot(data = df.final, aes(x = year_founded, y = endowment, col = school_type)) + 
-  geom_point() +xlab("Year the School was Founded") + ylab("School Endowment") +
-  Plot4 = ggplot(data = df.final, aes(x = year_founded, y = endowment, col = school_type)) + 
   geom_point() +xlab("Year the School was Founded") + ylab("School Endowment") +
   geom_smooth(aes(col = school_type), se = F) + labs(title = "Scatterplot of Year Founded vs Endowment")
 
