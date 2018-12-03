@@ -9,10 +9,11 @@ library(rvest)
 
 princeton = read_html("https://www.usnews.com/best-colleges/best-colleges/princeton-university-2627")
 cumber = read_html("https://www.usnews.com/best-colleges/university-of-the-cumberlands-1962")
+bu = read_html("https://www.usnews.com/best-colleges/boston-university-2130")
 
-info = html_text(html_nodes(cumber, ".flex-small"))
+info = html_text(html_nodes(bu, ".flex-small"))
 details = html_text(html_nodes(link, ".full-width , strong"))
-info2 = html_text(html_nodes(princeton, ".medium-end"))
+info2 = html_text(html_nodes(bu, ".medium-end"))
 
 # removes spaces, new lines, some symbols from all scraped data
 clean_str = function(strg) {
