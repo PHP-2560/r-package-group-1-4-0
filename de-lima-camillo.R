@@ -155,6 +155,7 @@ get_endowment = function(info){
   endowment = str_remove_all(info[6], regex("[a-z]"))
   endowment = str_remove_all(endowment, regex("20[0-9]{2}"))
   endowment = clean_str(endowment)
+  endowment = str_remove_all(endowment, regex("//+"))
   # choose unit of million or billion
   if (str_detect(info[6], pattern = "million")) {
     return(endowment)
