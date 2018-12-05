@@ -5,12 +5,13 @@ library(stringr)
 library(rebus)
 library(stringi)
 library(httr)
+library(dplyr)
 
 # removes spaces, new lines, some symbols from all scraped data
 clean_str = function(strg) {
   strg = str_remove_all(strg, "\n")
   strg = str_remove_all(strg, " ")
-  strg = str_remove_all(strg, regex("[$%]"))
+  strg = str_remove_all(strg, regex("[$%+]"))
 }
 
 # returns school type
@@ -72,7 +73,7 @@ get_acceptance_rate = function(info2){
       break
     }
   }
-  print(accept)
+  return(accept)
 }
 
 # get student faculty ratio
@@ -85,7 +86,7 @@ get_stu_fac_ratio = function(info2){
       break
     }
   }
-  print(ratio)
+  return(ratio)
 }
 
 # get 4 year graduation rate
@@ -98,7 +99,7 @@ get_grad_rate=function(info){
       break
     }
   }
-  print(grad)
+  return(grad)
 }
 
 get_score=function(details){
@@ -369,9 +370,6 @@ pie_chart
 #This pie_chart shows a shocking disparity between wealth. It clearly shows that nearly 10 out of all 200 schools 
 # hold wealth for nearly half of all of the schools endowments combined! Roughly sitting around 40%, the top 10
 # universities in the ranking around for almost half of all the total money at these schools.
-
-
-
 
 
 
