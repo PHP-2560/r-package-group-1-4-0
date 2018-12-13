@@ -121,8 +121,10 @@ grid.arrange(schoolPlot, tbl,
 
 
 
-
-
-
+par(mfrow= c(2,2))
+plot(hist(c(1,2,3,4,3,3,3,3,3)))
+plot(hist(c(1,2,4,3,3,3,3,3)))
+PlotCity("Brown University")
+PlotCity("Rice University")
 
 
