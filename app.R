@@ -6,7 +6,7 @@ ui <- fluidPage(
     sidebarPanel( br(), br(), br(),
       "This is where are the INPUTS will be" ,
       br(), br(), 
-      sliderInput(
+      sliderInput( 
         "num", "Choose a number",
         min = 0, max = 100,
         value = 20),
