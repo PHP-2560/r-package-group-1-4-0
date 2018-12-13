@@ -8,10 +8,10 @@
 
 
 
-#install.packages("maps")
-#install.packages("usmap")
-#install.packages("ggmap")
-#install.packages("gridExtra")
+install.packages("maps")
+install.packages("usmap")
+install.packages("ggmap")
+install.packages("gridExtra")
 library(usmap)
 library(maps)
 library(ggplot2)

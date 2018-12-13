@@ -1,7 +1,13 @@
 library(shiny)
 
+
+
+#Shiny app College and Universities Project
+
+
+
 ui <- fluidPage(
-  titlePanel("Group 1.0 version WEEK12"),
+  titlePanel("Group 1.0 v.13 Shiny App Project: United States Colleges and Universities"),
   sidebarLayout(
     sidebarPanel( br(), br(), br(),
       "This is where are the INPUTS will be" ,
@@ -13,7 +19,7 @@ ui <- fluidPage(
       plotOutput("myplot")
       ),
     mainPanel(br(), br(), br(),
-      "This is where all the OUTPUT and Beautiful Visuals will go"
+      "This is where all the OUTPUT and Beautiful Interactice Visuals will go"
     )
   )
 )
