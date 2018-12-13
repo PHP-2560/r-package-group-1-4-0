@@ -7,8 +7,6 @@
 # call the name of the column rather than the index
 
 
-# distance between home location and university
-
 
 #install.packages("maps")
 #install.packages("usmap")
@@ -21,27 +19,13 @@ library(dplyr)
 library(ggmap)
 library(gridExtra)
 
-# rownames(df) = c("University", 
-#                  "Year_Founded", 
-#                  "Religion", 
-#                  "Endowment", 
-#                  "School_Type", 
-#                  "Median_Start_Sal", 
-#                  "Acc_Rate", 
-#                  "Stu_Fac_Ratio", 
-#                  "Graduation_Rate",
-#                  "Score",
-#                  "Location",
-#                  "Tuition",
-#                  "Room_Board",
-#                  "Enrollment"
-# )
 
 
+# Creating column for state that the school is located in
 df.copy <- df.final
 df.copy$location <- as.character(df.copy$location)
 df.copy$state <- substr(df.copy$location, nchar(df.copy$location)-1, nchar(df.copy$location)) 
-# Creating column for state that the school is located in
+
 
 
 # -------
@@ -79,28 +63,31 @@ mapPlot <- function(SchoolName) {
 
 # --------
 
-################################################################################################################
 
 #Parsing location and making a separate column for city
 for (i in 1:length(df.copy$location)) {
 df.copy$city[i] = strsplit(df.copy$location, split = ",")[[i]][1] 
 }
 
-# IMPORTANT: this finds the lat and lon of each city, only run ONCE
-# df.copy <- cbind(df.copy, geocode(as.character(df.copy$city), source = "dsk"))
+cityData <- as.tbl(read.csv("USCities.csv")) %>%
+  select(city, state_id, lat, lng) %>%
+  rename(latitude = lat, longitude = lng) %>%
+  mutate(location = paste(city,", ", state_id, sep = "")) 
 
-df.copy <- df.copy
+df.copy1 <- left_join(df.copy, cityData, by = "location")
+
+
 
 states <- map_data("state")
 
 # PlotCity graphs a US and places a point where the inputted school is
 PlotCity <- function(schoolName) {
-coordinates <- df.copy %>%
+coordinates <- df.copy1 %>%
     filter(universities == schoolName) %>%
-    select(lon, lat)
+    select(longitude, latitude)
 coordinates <- unlist(coordinates)
 
-Stats <- df.copy %>%
+Stats <- df.copy1 %>%
   filter(universities == schoolName)
   
   
@@ -129,8 +116,7 @@ grid.arrange(schoolPlot, tbl,
 }
 
 
-#########################################################################################################
-
+# --------
 
 
 
