@@ -6,7 +6,6 @@
 # make function as general as possible
 # call the name of the column rather than the index
 
-# given a salary, how many years would it take to pay tuition of university if interest rate is x%, how much you're giving 
 
 # distance between home location and university
 
@@ -14,11 +13,13 @@
 #install.packages("maps")
 #install.packages("usmap")
 #install.packages("ggmap")
+#install.packages("gridExtra")
 library(usmap)
 library(maps)
 library(ggplot2)
 library(dplyr)
 library(ggmap)
+library(gridExtra)
 
 # rownames(df) = c("University", 
 #                  "Year_Founded", 
@@ -71,8 +72,8 @@ mapPlot <- function(SchoolName) {
   state <- df.copy %>%
     filter(universities == SchoolName) %>%
     select(state)
-  plot_usmap(include = c(state)) +
-    labs(title = "US State Visualization", subtitle = paste("This is the state of", state))
+  plot_usmap(include = c(state), labels = T) +
+    labs(title = "US State Close-up")
   
 }
 
@@ -88,21 +89,42 @@ df.copy$city[i] = strsplit(df.copy$location, split = ",")[[i]][1]
 # IMPORTANT: this finds the lat and lon of each city, only run ONCE
 # df.copy <- cbind(df.copy, geocode(as.character(df.copy$city), source = "dsk"))
 
+df.copy <- df.copy
+
 states <- map_data("state")
 
-
-
+# PlotCity graphs a US and places a point where the inputted school is
 PlotCity <- function(schoolName) {
 coordinates <- df.copy %>%
     filter(universities == schoolName) %>%
     select(lon, lat)
 coordinates <- unlist(coordinates)
 
+Stats <- df.copy %>%
+  filter(universities == schoolName)
   
-ggplot(data = states) + 
+  
+schoolPlot <- ggplot(data = states) + 
   geom_polygon(aes(x = long, y = lat, fill = region, group = group), color = "white") + 
   coord_fixed(1.3) +
-  guides(fill=FALSE) + geom_point(aes(x = coordinates[1], y = coordinates[2]))
+  guides(fill=FALSE) + geom_point(aes(x = coordinates[1], y = coordinates[2])) +
+  labs(title = paste("US School Location of", schoolName)) +
+  theme(axis.title.x = element_blank(), 
+        axis.title.y = element_blank(), 
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank())
+
+SummaryTable <- data.frame(Stats$universities, Stats$school_type, Stats$ranking, Stats$location, Stats$tuition)
+names(SummaryTable) <- c("School Name", "School Type", "Ranking", "Location", "Tuition")
+
+tt <- ttheme_default(colhead=list(fg_params = list(parse=TRUE)))
+tbl <- tableGrob(SummaryTable, rows=NULL, theme=tt)
+# Plot chart and table into one object
+grid.arrange(schoolPlot, tbl,
+             nrow=2,
+             as.table=TRUE,
+             heights=c(3,1))
 
 }
 
