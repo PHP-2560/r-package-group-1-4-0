@@ -14,15 +14,13 @@ check_packages = function(names) {
 }
 
 
-
-
 #TWITTER
 setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 tw = twitteR::searchTwitter('Harvard', n = 1e3, since = '2018-09-08', retryOnRateLimit = 1e4, lang = "en")
 d = twitteR::twListToDF(tw)
 d = as_tibble(d)
 
-#this function sets up the twitter api. The parameters are optional and I'm using the ones from my twitter account
+#this function sets up the twitter api. The parameters are optional and I'm using the ones from my twitter api account
 setup_tweets = function(consumer_key = "kmp7IUYAhZQftCrYkFSICCjuz",
                         consumer_secret = "EMtBaYhcYV7V3vAEmSMSvApaSDJfj101fCD5TYAjicf4Z3ncy6",
                         access_token = "1060241795240599557-Qyvx7TY0kYQ2ovPLYnMi6E4GNgirko",
@@ -31,8 +29,7 @@ setup_tweets = function(consumer_key = "kmp7IUYAhZQftCrYkFSICCjuz",
   invisible(capture.output(setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)))
 }
 
-#This function gets the positivity associate with the tweets related to a word from -4 to 4. There are some parameters and prints a ttest.
-get_twitter_feelings = function(string, n_tweets = 20, since_date = Sys.Date() - 30, ttest = TRUE){
+get_tw_words = function(string, n_tweets, since_date){
   setup_tweets()
   check_packages(c("tidytext", "stringr", "twitteR", "utf8"))
   twt = twitteR::searchTwitter(string, n = n_tweets, since = as.character(since_date), retryOnRateLimit = 1e4, lang = "en") 
@@ -47,6 +44,12 @@ get_twitter_feelings = function(string, n_tweets = 20, since_date = Sys.Date() -
     }
     words = append(words, text)
   }
+  return(words)
+}
+
+#This function gets the positivity associate with the tweets related to a word from -4 to 4. There are some parameters and prints a ttest.
+get_tw_feelings = function(string, n_tweets = 20, since_date = Sys.Date() - 30){
+  words = get_tw_words(string, n_tweets, since_date)
   afinn = get_sentiments("afinn")
   scores = vector()
   count = 1
@@ -90,24 +93,48 @@ show_tw = function(string, n_tweets = 1){
   print(df_tw$text)
 }
 
-colnames(df) = c("University", 
-                 "Year_Founded", 
-                 "Religion", 
-                 "Endowment", 
-                 "School_Type", 
-                 "Median_Start_Sal", 
-                 "Acc_Rate", 
-                 "Stu_Fac_Ratio", 
-                 "Graduation_Rate",
-                 "Score",
-                 "Location",
-                 "Tuition",
-                 "Room_Board",
-                 "Enrollment"
-                 )
+#plots pie chart with feelings
+plot_moody_pie = function(string, n_tweets = 20, since_date = Sys.Date() - 30){
+  check_packages("tibble")
+  words = get_tw_words(string, n_tweets, since_date)
+  nrc = get_sentiments("nrc")
+  feelings = vector()
+  count = 1
+  for (i in 1:length(words)){
+    if (words[i] %in% nrc$word) {
+      for (j in 1:length(which(nrc$word == words[i]))){
+        feelings[count] = nrc$sentiment[which(nrc$word == words[i])[j]]
+        count = count + 1
+      }
+    }
+  }
+  f_df = tibble(feelings)
+  colnames(f_df) = "feelings"
+  f_df[[1]] = as.factor(f_df[[1]])
+  ggplot(f_df, aes(x = 1, fill = feelings, col = feelings)) +
+    geom_bar() +
+    coord_polar(theta = "y") 
+}
 
-
-
+pay_loans = function(university, salary = 70000, interest = 0.03, per_sal = 0.15){
+  if (length(which(df$University == university))==0){
+    print("That is not a valid university")
+    quit()
+  }
+  tuition = as.integer(as.character(df$Tuition[which(df$University == university)]))
+  if (is.na(tuition)){
+    print("Sorry, there is no tuition data avaiable for that university")
+    quit()
+  }
+  bill = 4*tuition
+  year = 0
+  while (bill>0) {
+    bill = bill - salary*per_sal
+    bill = bill*(1+interest)
+    year = year + 1
+  }
+  cat("Assuming a salary of ", salary, " dollars per year, that ", per_sal*100, "% (", per_sal*salary,"$) would be used to pay the loan annualy, and the interest rate at ", 0.02*100, "% y/y, it would take ", year, " year(s) to pay for the student loans",sep = "")
+}
 
 
 
