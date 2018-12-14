@@ -12,14 +12,13 @@ library(gridExtra)
 
 
 
+# --------
+
 # Creating column for state that the school is located in
 df.copy <- df.final
 df.copy$location <- as.character(df.copy$location)
 df.copy$state <- substr(df.copy$location, nchar(df.copy$location)-1, nchar(df.copy$location)) 
 
-
-
-# --------
 
 #' mapPlot
 #'
@@ -50,17 +49,16 @@ for (i in 1:length(df.copy$location)) {
 df.copy$city[i] = strsplit(df.copy$location, split = ",")[[i]][1] 
 }
 
+# reading in a csv file with thousands of cities in the US and their respective geographical coordinates
 cityData <- as.tbl(read.csv("USCities.csv")) %>%
   select(city, state_id, lat, lng) %>%
   rename(latitude = lat, longitude = lng) %>%
   mutate(location = paste(city,", ", state_id, sep = "")) 
 
-# Getting the coordinates of each school by joining the dataframe with the cvs file
+# Getting the coordinates of each school by joining the dataframe with the csv file
 df.copy1 <- left_join(df.copy, cityData, by = "location")
 
 states <- map_data("state")
-
-
 
 #' PlotCity
 #'
@@ -78,6 +76,8 @@ coordinates <- df.copy1 %>%
     filter(universities == schoolName) %>%
     select(longitude, latitude)
 coordinates <- unlist(coordinates)
+# this grabs the correct coordinates for the user-inputted school
+
 
 Stats <- df.copy1 %>%
   filter(universities == schoolName)
