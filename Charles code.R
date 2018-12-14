@@ -1,12 +1,3 @@
-#tryCatch, put expression, when there is an error it can print something
-
-
-
-# right before the function, comment all the packages that are used
-# make function as general as possible
-# call the name of the column rather than the index
-
-
 
 #install.packages("maps")
 #install.packages("usmap")
@@ -28,29 +19,18 @@ df.copy$state <- substr(df.copy$location, nchar(df.copy$location)-1, nchar(df.co
 
 
 
-# -------
-
-# This block of code graphs a map of the United States. 
-
-# BY RANK:Each state is colored based on the highest ranking school in each respective state. Higher ranked states show darker colors while lower ranked states show lighter colors. 
-
-# make into function
-
-df.grouped <- df.copy %>%
-  group_by(state) %>%
-  mutate(rankLow = min(ranking), schoolCount = n()) %>%
-  select(state, rankLow, schoolCount)
-
-df.grouped <- unique(df.grouped)
-
-plot_usmap(data = df.grouped, values = "rankLow", lines = "red") + 
-  scale_fill_continuous(name = "Best School Rank", low = "blue", high = "white", label = scales::comma) + 
-  theme(legend.position = "right")
-
-
-
 # --------
-# mapPlot graphs the state that the school is located in
+
+#' mapPlot
+#'
+#' Graphs the an outline of the state that the inputted school is located in for the top 200 nationally ranked universities or colleges in the United States.
+#'
+#' @param SchoolName The name of the college or university being plotted for the respective state.
+#' @return A map of a single state in the US with an abbreviated label of the state pasted in the interior. 
+#' @examples
+#' mapPlot(schoolName = "Brown University")
+#' mapPlot(schoolName = "Princeton University")
+#' @import tidyverse, usmap, ggplot2
 
 mapPlot <- function(SchoolName) {
   state <- df.copy %>%
@@ -60,6 +40,7 @@ mapPlot <- function(SchoolName) {
     labs(title = "US State Close-up")
   
 }
+
 
 # --------
 
@@ -74,13 +55,24 @@ cityData <- as.tbl(read.csv("USCities.csv")) %>%
   rename(latitude = lat, longitude = lng) %>%
   mutate(location = paste(city,", ", state_id, sep = "")) 
 
+# Getting the coordinates of each school by joining the dataframe with the cvs file
 df.copy1 <- left_join(df.copy, cityData, by = "location")
-
-
 
 states <- map_data("state")
 
-# PlotCity graphs a US and places a point where the inputted school is
+
+
+#' PlotCity
+#'
+#' Graphs a map of the United States and places a black dot where the inputted school is geographically located. 
+#'
+#' @param schoolName The name of the college or university that is being plotted.
+#' @return A map of the United States with a black dot of the college or university. A few summary statistics are given underneath the graph, such as whether the school is public or private, the school rank, location, and annual tuition.
+#' @examples
+#' PlotCity(schoolName = "Brown University")
+#' PlotCity(schoolName = "Princeton University")
+#' @import tidyverse, ggmap, ggplot2, gridExtra
+
 PlotCity <- function(schoolName) {
 coordinates <- df.copy1 %>%
     filter(universities == schoolName) %>%
@@ -90,11 +82,10 @@ coordinates <- unlist(coordinates)
 Stats <- df.copy1 %>%
   filter(universities == schoolName)
   
-  
 schoolPlot <- ggplot(data = states) + 
   geom_polygon(aes(x = long, y = lat, fill = region, group = group), color = "white") + 
   coord_fixed(1.3) +
-  guides(fill=FALSE) + geom_point(aes(x = coordinates[1], y = coordinates[2])) +
+  guides(fill=FALSE) + geom_point(aes(x = coordinates[1], y = coordinates[2]), size = 3) +
   labs(title = paste("US School Location of", schoolName)) +
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank(), 
@@ -116,15 +107,7 @@ grid.arrange(schoolPlot, tbl,
 }
 
 
-# --------
 
 
-
-
-par(mfrow= c(2,2))
-plot(hist(c(1,2,3,4,3,3,3,3,3)))
-plot(hist(c(1,2,4,3,3,3,3,3)))
-PlotCity("Brown University")
-PlotCity("Rice University")
 
 
