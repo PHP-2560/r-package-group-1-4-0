@@ -1,3 +1,13 @@
+# make_df
+# 
+# Creates dataframe of all scraped information for each school listed in US News Rankings.
+# 
+# @return Returns a tibble; a dataframe of all national universities listed in US News
+# 
+# 
+
+
+
 library(rebus)
 library(stringi)
 library(stringr)
@@ -156,7 +166,7 @@ get_acceptance_rate = function(info2){
       break
     }
   }
-  print(accept)
+  return(accept)
 }
 
 # get student faculty ratio
@@ -169,7 +179,7 @@ get_stu_fac_ratio = function(info2){
       break
     }
   }
-  print(ratio)
+  return(ratio)
 }
 
 # get 4 year graduation rate
@@ -182,6 +192,6 @@ get_grad_rate=function(info){
       break
     }
   }
-  print(grad)
+  return(grad)
 }
 #---------------------------------------------------
