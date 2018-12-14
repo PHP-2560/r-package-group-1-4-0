@@ -1,3 +1,9 @@
+
+library(tidyverse)
+library(rebus)
+library(httr)
+library(rvest)
+
 make_df = function() {
   
   print("It might take some minutes to scrape...")
@@ -258,7 +264,5 @@ make_df = function() {
                    "Tuition",
                    "Room_Board",
                    "Enrollment")
-  
-  df = as.tibble(df)
   return(df)
 }
