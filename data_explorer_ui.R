@@ -278,7 +278,8 @@ library(rvest)
 
 library(shiny)
 ui = navbarPage("UniversityRank", id="nav",
-
+                        
+      tabPanel("Data explorer",
             fluidRow(
               column(3,
                      selectInput("schools", "Schools", c("Public", "Private"), multiple=TRUE)
@@ -294,7 +295,7 @@ ui = navbarPage("UniversityRank", id="nav",
             ),
             hr(),
             DT::dataTableOutput("df")
-   ),
+          ),
    conditionalPanel("true", icon("crosshair"))
 )
 
