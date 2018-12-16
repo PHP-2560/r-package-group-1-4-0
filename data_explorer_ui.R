@@ -280,7 +280,6 @@ colnames(df) = c("University",
 
 # Choices for drop-downs
 
-library(shiny)
 ui = navbarPage("UniversityRankings", id="nav",
                         
       tabPanel("Data explorer",
@@ -291,10 +290,10 @@ ui = navbarPage("UniversityRankings", id="nav",
             ),
             fluidRow(
               column(1,
-                     numericInput("minScore", "Min Score", min=0, max=100, value=0)
+                     numericInput("minScore", "Min Score", value = 0, min=0, max=100)
               ),
               column(1,
-                     numericInput("maxScore", "Max Score", min=0, max=100, value=100)
+                     numericInput("maxScore", "Max Score", value = 100, min=0, max=100)
               )
             ),
             hr(),
