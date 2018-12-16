@@ -280,7 +280,6 @@ colnames(df) = c("University",
 
 # Choices for drop-downs
 
-library(shiny)
 ui = navbarPage("UniversityRankings", id="nav",
                         
       tabPanel("Data explorer",
@@ -291,10 +290,10 @@ ui = navbarPage("UniversityRankings", id="nav",
             ),
             fluidRow(
               column(1,
-                     numericInput("minScore", "Min Score", min=0, max=100, value=0)
+                     numericInput("minScore", "Min Score", value = 0, min=0, max=100)
               ),
               column(1,
-                     numericInput("maxScore", "Max Score", min=0, max=100, value=100)
+                     numericInput("maxScore", "Max Score", value = 100, min=0, max=100)
               )
             ),
             hr(),
@@ -305,16 +304,16 @@ ui = navbarPage("UniversityRankings", id="nav",
 
 ##########################
 
-server <- function(input, output) {
+server <- function(input, output,session) {
   observe({
-    cities <- if (is.null(input$states)) character(0) else {
-      filter(cleantable, State %in% input$states) %>%
-        `$`('City') %>%
+    schools <- if (is.null(input$schools)) character(0) else {
+      filter(df, School_Type %in% input$schools) %>%
+        `$`('School') %>%
         unique() %>%
         sort()
     }
-    stillSelected <- isolate(input$cities[input$cities %in% cities])
-    updateSelectInput(session, "cities", choices = cities,
+    stillSelected <- isolate(input$schools[input$schools %in% schools])
+    updateSelectInput(session, "schools", choices = schools,
                       selected = stillSelected)
   })
   # 
@@ -332,34 +331,19 @@ server <- function(input, output) {
   #                     selected = stillSelected)
   # })
   # 
-  # observe({
-  #   if (is.null(input$goto))
-  #     return()
-  #   isolate({
-  #     map <- leafletProxy("map")
-  #     map %>% clearPopups()
-  #     dist <- 0.5
-  #     zip <- input$goto$zip
-  #     lat <- input$goto$lat
-  #     lng <- input$goto$lng
-  #     showZipcodePopup(zip, lat, lng)
-  #     map %>% fitBounds(lng - dist, lat - dist, lng + dist, lat + dist)
-  #   })
-  # })
+ 
   
   output$df_out <- DT::renderDataTable({
     df 
-    #%>%
-    # dplyr::filter(
-    #   Score >= input$minRank)
-    #     df$Score <= input$maxRank
-        # is.null(input$states) | State %in% input$states,
-        # is.null(input$cities) | City %in% input$cities,
-        # is.null(input$zipcodes) | Zipcode %in% input$zipcodes
-      #) #%>%
+    %>%
+    dplyr::filter(
+      Score >= input$minScore,
+      Score <= input$maxScore,
+      is.null(input$states) | State %in% input$states
+      ) #%>%
       # mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
       # 
-    #action <- DT::dataTableAjax(session, df)
+    action <- DT::dataTableAjax(session, df)
     
     DT::datatable(df, escape = FALSE) #options = list(ajax = list(url = action)),
   })
