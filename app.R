@@ -16,6 +16,7 @@ ui <- fluidPage(
     
     # Inputs
     sidebarPanel(
+      h3("Plotting"),      # Third level header: Plotting
       
       # Select variable for y-axis
       selectInput(inputId = "y", 
@@ -40,22 +41,27 @@ ui <- fluidPage(
                 label = "Plot title", 
                 placeholder = "Enter text for plot title"),
       
+      h3("Selecting"),
+      
       # Select which types of school
       checkboxGroupInput(inputId = "selected_type",
                          label = "Select school type:",
                          choices = c("Public", "Private", "Proprietary"),
-                         selected = "Private")
+                         selected = "Private"
     ),
     
     # Outputs
     mainPanel(
+      
+      h3("Scatterplot"),
       plotOutput(outputId = "scatterplot"),
+      br(),   
       plotOutput(outputId = "densityplot", height = 200),
       verbatimTextOutput(outputId = "lmoutput") # regression output
     )
   )
 )
-
+)
 # Define server function required to create the scatterplot
 server <- function(input, output) {
   
