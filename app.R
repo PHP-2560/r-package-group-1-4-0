@@ -2,9 +2,14 @@
 
 library(shiny)
 library(ggplot2)
+library(dplyr)
+library(tools)
 
 # Define UI for application
 ui <- fluidPage(
+  
+  # Application title
+  titlePanel("PHP2560/1560 Shiny App"),
   
   # Sidebar layout with a input and output definitions
   sidebarLayout(
@@ -28,7 +33,18 @@ ui <- fluidPage(
       selectInput(inputId = "z", 
                   label = "Color by:",
                   choices = c("School_Type", "Religion"),
-                  selected = "School_Type")
+                  selected = "School_Type"),
+      
+      # Enter text for plot title
+      textInput(inputId = "plot_title", 
+                label = "Plot title", 
+                placeholder = "Enter text for plot title"),
+      
+      # Select which types of school
+      checkboxGroupInput(inputId = "selected_type",
+                         label = "Select school type:",
+                         choices = c("Public", "Private", "Proprietary"),
+                         selected = "Private")
     ),
     
     # Outputs
@@ -43,12 +59,34 @@ ui <- fluidPage(
 # Define server function required to create the scatterplot
 server <- function(input, output) {
   
-  # Create the scatterplot object the plotOutput function is expecting
+  # Create a subset of data filtering for selected title types
+  schools_subset <- reactive({
+    req(input$selected_type)
+    filter(df, School_Type %in% input$selected_type)
+  })
+  # Convert plot_title toTitleCase
+  pretty_plot_title <- reactive({ toTitleCase(input$plot_title) })
+  
+  # Create scatterplot object the plotOutput function is expecting
   output$scatterplot <- renderPlot({
-    ggplot(data = df, aes_string(x = input$x, y = input$y,
-                                     color = input$z)) +
-      geom_point()
+    ggplot(data = schools_subset(), 
+           aes_string(x = input$x, y = input$y, color = input$z)) +
+      geom_point() +
+      labs(title = pretty_plot_title())
+  })  
+  
+  
+  # Create the scatterplot object the plotOutput function is expecting
+ # output$scatterplot <- renderPlot({
+  #  ggplot(data = df, aes_string(x = input$x, y = input$y,
+   #                                  color = input$z)) +
+    #  geom_point()
     
+    # Create descriptive text
+    output$description <- renderText({
+      paste0("The plot above titled '", pretty_plot_title(), "' visualizes the relationship between ", 
+             input$x, " and ", input$y, ", conditional on ", input$z, ".")
+  
   
   })
   #creating density plot
@@ -65,6 +103,8 @@ server <- function(input, output) {
     summ <- summary(lm(y ~ x, data = df)) 
     print(summ, digits = 3, signif.stars = FALSE)
   })
+  
+  
 }
 
 # Create a Shiny app object
