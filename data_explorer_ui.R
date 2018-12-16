@@ -308,6 +308,7 @@ server <- function(input, output,session) {
   observe({
     schools <- if (is.null(input$schools)) character(0) else {
       filter(df, School_Type %in% input$schools) %>%
+        `$`('School') %>%
         unique() %>%
         sort()
     }
@@ -334,14 +335,12 @@ server <- function(input, output,session) {
   
   output$df_out <- DT::renderDataTable({
     df 
-    #%>%
-    # dplyr::filter(
-    #   Score >= input$minRank)
-    #     df$Score <= input$maxRank
-        # is.null(input$states) | State %in% input$states,
-        # is.null(input$cities) | City %in% input$cities,
-        # is.null(input$zipcodes) | Zipcode %in% input$zipcodes
-      #) #%>%
+    %>%
+    dplyr::filter(
+      Score >= input$minScore,
+      Score <= input$maxScore,
+      is.null(input$states) | State %in% input$states
+      ) #%>%
       # mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
       # 
     action <- DT::dataTableAjax(session, df)
