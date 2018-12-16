@@ -1,5 +1,5 @@
 #install.packages("shiny")
-#install.packages("shinythemes")
+
 library(shiny)
 library(ggplot2)
 library(dplyr)
@@ -8,8 +8,8 @@ library(shinythemes)
 
 # Define UI for application
 ui <- fluidPage(
-  themeSelector(),  
   
+  themeSelector(),
   # Application title
   titlePanel("PHP2560/1560 Shiny App"),
   
@@ -18,8 +18,6 @@ ui <- fluidPage(
     
     # Inputs
     sidebarPanel(
-      
-      h3("Plotting"),      # Third level header: Plotting
       
       # Select variable for y-axis
       selectInput(inputId = "y", 
@@ -33,42 +31,33 @@ ui <- fluidPage(
                   choices = c("Endowment", "Median_Start_Sal", "Acc_Rate", "Score", "Tuition"), 
                   selected = "Acc_Rate"),
       
-      # Enter text for plot title
-      textInput(inputId = "plot_title", 
-                label = "Plot title", 
-                placeholder = "Enter text for plot title"),
-
-      
       # Select variable for color
       selectInput(inputId = "z", 
                   label = "Color by:",
                   choices = c("School_Type", "Religion"),
                   selected = "School_Type"),
       
-
-      hr(),
-      h3("Selecting"),
+      # Enter text for plot title
+      textInput(inputId = "plot_title", 
+                label = "Plot title", 
+                placeholder = "Enter text to be used as plot title"),
       
       # Select which types of school
       checkboxGroupInput(inputId = "selected_type",
                          label = "Select school type:",
                          choices = c("Public", "Private", "Proprietary"),
-                         selected = "Private"
-  ),
-       
+                         selected = "Private")
+    ),
     
     # Outputs
     mainPanel(
-      
-      h3("Scatterplot"),
       plotOutput(outputId = "scatterplot"),
-      br(),   
       plotOutput(outputId = "densityplot", height = 200),
       verbatimTextOutput(outputId = "lmoutput") # regression output
     )
   )
 )
-)
+
 # Define server function required to create the scatterplot
 server <- function(input, output) {
   
