@@ -305,16 +305,15 @@ ui = navbarPage("UniversityRankings", id="nav",
 
 ##########################
 
-server <- function(input, output) {
+server <- function(input, output,session) {
   observe({
-    cities <- if (is.null(input$states)) character(0) else {
-      filter(cleantable, State %in% input$states) %>%
-        `$`('City') %>%
+    schools <- if (is.null(input$schools)) character(0) else {
+      filter(df, School_Type %in% input$schools) %>%
         unique() %>%
         sort()
     }
-    stillSelected <- isolate(input$cities[input$cities %in% cities])
-    updateSelectInput(session, "cities", choices = cities,
+    stillSelected <- isolate(input$schools[input$schools %in% schools])
+    updateSelectInput(session, "schools", choices = schools,
                       selected = stillSelected)
   })
   # 
@@ -332,20 +331,7 @@ server <- function(input, output) {
   #                     selected = stillSelected)
   # })
   # 
-  # observe({
-  #   if (is.null(input$goto))
-  #     return()
-  #   isolate({
-  #     map <- leafletProxy("map")
-  #     map %>% clearPopups()
-  #     dist <- 0.5
-  #     zip <- input$goto$zip
-  #     lat <- input$goto$lat
-  #     lng <- input$goto$lng
-  #     showZipcodePopup(zip, lat, lng)
-  #     map %>% fitBounds(lng - dist, lat - dist, lng + dist, lat + dist)
-  #   })
-  # })
+ 
   
   output$df_out <- DT::renderDataTable({
     df 
@@ -359,7 +345,7 @@ server <- function(input, output) {
       #) #%>%
       # mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
       # 
-    #action <- DT::dataTableAjax(session, df)
+    action <- DT::dataTableAjax(session, df)
     
     DT::datatable(df, escape = FALSE) #options = list(ajax = list(url = action)),
   })
