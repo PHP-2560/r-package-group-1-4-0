@@ -2,16 +2,11 @@ library(RColorBrewer)
 library(scales)
 library(lattice)
 library(dplyr)
+library(tidyverse)
+library(rebus)
+library(httr)
+library(rvest)
 library(shiny)
-library(tidyverse)
-library(rebus)
-library(httr)
-library(rvest)
-
-library(tidyverse)
-library(rebus)
-library(httr)
-library(rvest)
 
 ############### create df
 
@@ -285,7 +280,7 @@ ui = navbarPage("UniversityRankings", id="nav",
       tabPanel("Data explorer",
             fluidRow(
               column(3,
-                     selectInput("schools", "Schools", c("Public", "Private"), multiple=TRUE)
+                     selectInput("schools", "Schools", c("Public", "Private", "Proprietary"), multiple=TRUE)
               )
             ),
             fluidRow(
@@ -308,13 +303,13 @@ server <- function(input, output,session) {
   observe({
     schools <- if (is.null(input$schools)) character(0) else {
       filter(df, School_Type %in% input$schools) %>%
-        `$`('School') %>%
+        #`$`('University') %>%
         unique() %>%
         sort()
     }
-    stillSelected <- isolate(input$schools[input$schools %in% schools])
-    updateSelectInput(session, "schools", choices = schools,
-                      selected = stillSelected)
+    #stillSelected <- isolate(input$schools[input$schools %in% schools])
+    updateSelectInput(session, "schools", choices = schools)
+                      #selected = stillSelected)
   })
   # 
   # observe({
@@ -340,8 +335,8 @@ server <- function(input, output,session) {
       Score >= input$minScore,
       Score <= input$maxScore,
       is.null(input$states) | State %in% input$states
-      ) #%>%
-      # mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
+       ) #%>%
+      #  mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
       # 
     action <- DT::dataTableAjax(session, df)
     
