@@ -2,94 +2,316 @@ library(RColorBrewer)
 library(scales)
 library(lattice)
 library(dplyr)
+library(tidyverse)
+library(rebus)
+library(httr)
+library(rvest)
+library(shiny)
+
+############### create df
 
 
+print("It might take some minutes to scrape...")
 
-allzips <- readRDS("data/superzip.rds")
-allzips$latitude <- jitter(allzips$latitude)
-allzips$longitude <- jitter(allzips$longitude)
-allzips$college <- allzips$college * 100
-allzips$zipcode <- formatC(allzips$zipcode, width=5, format="d", flag="0")
-row.names(allzips) <- allzips$zipcode
+#The following functions are sort of helper functions in order to scrape the data:
 
-cleantable <- allzips %>%
-  select(
-    City = city.x,
-    State = state.x,
-    Zipcode = zipcode,
-    Rank = rank,
-    Score = centile,
-    Superzip = superzip,
-    Population = adultpop,
-    College = college,
-    Income = income,
-    Lat = latitude,
-    Long = longitude
-  )
-
-function(input, output, session) {
-  
-  ## Data Explorer ###########################################
-  
-  observe({
-    cities <- if (is.null(input$states)) character(0) else {
-      filter(cleantable, State %in% input$states) %>%
-        `$`('City') %>%
-        unique() %>%
-        sort()
-    }
-    stillSelected <- isolate(input$cities[input$cities %in% cities])
-    updateSelectInput(session, "cities", choices = cities,
-                      selected = stillSelected)
-  })
-  
-  observe({
-    zipcodes <- if (is.null(input$states)) character(0) else {
-      cleantable %>%
-        filter(State %in% input$states,
-               is.null(input$cities) | City %in% input$cities) %>%
-        `$`('Zipcode') %>%
-        unique() %>%
-        sort()
-    }
-    stillSelected <- isolate(input$zipcodes[input$zipcodes %in% zipcodes])
-    updateSelectInput(session, "zipcodes", choices = zipcodes,
-                      selected = stillSelected)
-  })
-  
-  observe({
-    if (is.null(input$goto))
-      return()
-    isolate({
-      map <- leafletProxy("map")
-      map %>% clearPopups()
-      dist <- 0.5
-      zip <- input$goto$zip
-      lat <- input$goto$lat
-      lng <- input$goto$lng
-      showZipcodePopup(zip, lat, lng)
-      map %>% fitBounds(lng - dist, lat - dist, lng + dist, lat + dist)
-    })
-  })
-  
-  output$ziptable <- DT::renderDataTable({
-    df <- cleantable %>%
-      filter(
-        Score >= input$minScore,
-        Score <= input$maxScore,
-        is.null(input$states) | State %in% input$states,
-        is.null(input$cities) | City %in% input$cities,
-        is.null(input$zipcodes) | Zipcode %in% input$zipcodes
-      ) %>%
-      mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
-    action <- DT::dataTableAjax(session, df)
-    
-    DT::datatable(df, options = list(ajax = list(url = action)), escape = FALSE)
-  })
+# removes spaces, new lines, some symbols from all scraped data
+clean_str = function(strg) {
+  strg = str_remove_all(strg, "\n")
+  strg = str_remove_all(strg, " ")
+  strg = str_remove_all(strg, regex("[$%+,]"))
 }
 
+# returns school type
+get_school_type = function(info) {
+  school_type = str_split(info[1], ",", n = 2)
+  school_type = school_type[[1]][1]
+  school_type = clean_str(school_type)
+  return(school_type)
+}
 
-shinyApp(ui=ui, server = server)
+# returns year founded
+get_year_founded = function(info) {
+  year = clean_str(info[2])
+  year = str_remove_all(year, regex("[a-z]"))
+  return(year)
+}
+
+# returns religious affiliation
+get_religion = function(info) {
+  religion = str_remove_all(info[3], "\n")
+  religion = str_remove_all(religion, "religious affiliation")
+  religion = str_remove_all(religion, "/s")
+  return(religion)
+}
+
+# returns endowment
+get_endowment = function(info) {
+  endowment = str_remove_all(info[6], regex("[a-z]"))
+  endowment = str_remove_all(endowment, regex("20[0-9]{2}"))
+  endowment = clean_str(endowment)
+  # choose unit of million or billion
+  if (str_detect(info[6], pattern = "million")) {
+    return(endowment)
+  } else {
+    endowment = as.numeric(endowment) * 1000
+    return(endowment)
+  }
+}
+
+# returns median starting salary for new graduates
+get_median_starting_salary = function(info2) {
+  if (str_detect(info2[1], regex("[0-9]"))) {
+    salary = clean_str(info2[1])
+    salary = str_remove_all(salary, regex("[,*]"))
+    return(salary)
+  } else {
+    return(NA)
+  }
+}
+
+# returns acceptance rate
+get_acc_rate = function(info2) {
+  lon = 2:9
+  accept = NA
+  for (i in lon) {
+    if (str_detect(info2[i], "%")) {
+      accept = info2[2]
+      accept = clean_str(info2[i])
+      break
+    }
+  }
+  return(accept)
+}
+
+# get student faculty ratio
+get_stu_fac_ratio = function(info2) {
+  lon = 9:13
+  ratio = NA
+  try({
+    for (i in lon) {
+      if (str_detect(info2[i], ":")) {
+        ratio = clean_str(info2[i])
+        break
+      }
+    }
+  }, silent = TRUE)
+  return(ratio)
+}
+
+# get 4 year graduation rate
+get_grad_rate = function(info) {
+  lon = 10:14
+  grad = NA
+  try({
+    for (i in lon) {
+      if (str_detect(info2[i], "%")) {
+        grad = clean_str(info2[i])
+        break
+      }
+    }
+  }, silent = TRUE)
+  return(grad)
+}
+
+# gets score
+get_score = function(details) {
+  score = NA
+  if (str_detect(details[2], pattern = "Overall")) {
+    score = clean_str(details[2])
+    score = str_remove_all(score, regex("[a-zA-Z]"))
+    score = str_split(score, "/", n = 2)
+    score = score[[1]][1]
+  }
+  return(score)
+}
+
+# gets location
+get_location = function(details) {
+  lon = 1:4
+  location = NA
+  for (i in lon) {
+    if (str_detect(details[i], ",")) {
+      location = details[i]
+      break
+    }
+  }
+  return(location)
+}
+
+# gets tuition
+get_tuition = function(details) {
+  lon = 4:9
+  tuition = NA
+  for (i in lon) {
+    if (str_detect(details[i], "Quick")) {
+      ind = i + 1
+      tuition = clean_str(details[ind])
+      tuition = str_split(tuition, "\\(", n = 2)
+      tuition = tuition[[1]][1]
+    }
+  }
+  return(tuition)
+}
+
+# get room & board
+get_room_board = function(details) {
+  lon = 4:9
+  rb = NA
+  for (i in lon) {
+    if (str_detect(details[i], "Quick")) {
+      ind = i + 2
+      rb = clean_str(details[ind])
+      rb = str_split(rb, "\\(", n = 2)
+      rb = rb[[1]][1]
+    }
+  }
+  return(rb)
+}
+
+# get enrollment
+get_enrollment = function(details) {
+  lon = 4:9
+  enroll = NA
+  for (i in lon) {
+    if (str_detect(details[i], "Quick")) {
+      ind = i + 3
+      enroll = clean_str(details[ind])
+    }
+  }
+  if (str_detect(enroll, "\\(")) {
+    enroll = str_split(enroll, "\\(", n = 2)
+    enroll = enroll[[1]][1]
+  }
+  return(enroll)
+}
+
+universities = rep(NA, 312)
+links_u = rep(NA, 312)
+count = 0
+try(while (TRUE) {
+  # change url
+  count = count + 1
+  url = str_c("https://www.usnews.com/best-colleges/rankings/national-universities?_mode=table&amp;_page=", as.character(count))
+  tryCatch(webpage <- read_html(url), error = function() break)
+  
+  # university names
+  names = html_text(html_nodes(webpage, "td.full-width > div > a"))
+  universities[(sum(!is.na(universities)) + 1):(sum(!is.na(universities)) + length(names))] = names
+  
+  # links
+  semi_links = html_attr(html_nodes(webpage, "div.text-strong.text-large.block-tighter > a"), "href")
+  links_u[(sum(!is.na(links_u)) + 1):(sum(!is.na(links_u)) + length(semi_links))] = str_c("https://www.usnews.com", semi_links)
+}, silent = TRUE)
+
+year_founded = rep(NA, length(universities))
+religion = rep(NA, length(universities))
+endowment = rep(NA, length(universities))
+school_type = rep(NA, length(universities))
+median_start_sal = rep(NA, length(universities))
+acc_rate = rep(NA, length(universities))
+stu_fac_ratio = rep(NA, length(universities))
+grad_rate = rep(NA, length(universities))
+score = rep(NA, length(universities))
+location = rep(NA, length(universities))
+tuition = rep(NA, length(universities))
+room_board = rep(NA, length(universities))
+enrollment = rep(NA, length(universities))
+
+try(
+  for (i in 1:length(universities)) {
+    link = read_html(links_u[i])
+    info = html_text(html_nodes(link, ".flex-small"))
+    details = html_text(html_nodes(link, ".full-width , strong"))
+    info2 = html_text(html_nodes(link, ".medium-end"))
+    year_founded[i] = get_year_founded(info)
+    religion[i] = get_religion(info)
+    endowment[i] = get_endowment(info)
+    school_type[i] = get_school_type(info)
+    median_start_sal[i] = get_median_starting_salary(info2)
+    acc_rate[i] = get_acc_rate(info2)
+    stu_fac_ratio[i] = get_stu_fac_ratio(info2)
+    grad_rate[i] = get_grad_rate(info2)
+    score[i] = get_score(details)
+    location[i] = get_location(details)
+    tuition[i] = get_tuition(details)
+    room_board[i] = get_room_board(details)
+    enrollment[i] = get_enrollment(details)
+  },
+  silent = TRUE)
+
+df = data.frame(as.character(universities),
+                as.integer(as.character(year_founded)),
+                religion, as.integer(as.character(endowment)),
+                school_type,
+                as.integer(as.character(median_start_sal)),
+                as.integer(as.character(acc_rate)),
+                as.character(stu_fac_ratio),
+                as.integer(as.character(grad_rate)),
+                as.integer(as.character(score)),
+                as.character(location),
+                as.integer(as.character(tuition)),
+                as.integer(as.character(room_board)),
+                as.integer(as.character(enrollment)))
+
+colnames(df) = c("University",
+                 "Year_Founded",
+                 "Religion",
+                 "Endowment",
+                 "School_Type",
+                 "Median_Start_Sal",
+                 "Acc_Rate",
+                 "Stu_Fac_Ratio",
+                 "Graduation_Rate",
+                 "Score",
+                 "Location",
+                 "Tuition",
+                 "Room_Board",
+                 "Enrollment")
 
 
+###############
+#library(leaflet)
 
+# Choices for drop-downs
+
+ui = navbarPage("UniversityRankings", id="nav",
+                        
+      tabPanel("Data explorer",
+            fluidRow(
+              column(3,
+                     selectInput("schools", "Schools", c("Public", "Private"), multiple=TRUE)
+              )
+            ),
+            fluidRow(
+              column(1,
+                     numericInput("minScore", "Min Score", value = 0, min=0, max=100)
+              ),
+              column(1,
+                     numericInput("maxScore", "Max Score", value = 90,min=0, max=100)
+              )
+            ),
+            hr(),
+            DT::dataTableOutput("df_out")
+          ),
+   conditionalPanel("true", icon("crosshair"))
+)
+
+##########################
+
+change_df = function(min, max, sch_typ) {
+  df %>%
+    dplyr::filter(score >= min,
+                  score <= max,
+                  is.null(sch_typ) | school_type %in% sch_typ
+                  )
+}
+
+server <- function(input, output,session) {
+  output$df_out = DT::renderDataTable({
+        change_df(input$minScore, input$maxScore, input$schools)
+  })
+  
+}  
+
+shinyApp(ui = ui, server = server)
