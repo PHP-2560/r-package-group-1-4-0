@@ -288,7 +288,7 @@ ui = navbarPage("UniversityRankings", id="nav",
                      numericInput("minScore", "Min Score", value = 0, min=0, max=100)
               ),
               column(1,
-                     numericInput("maxScore", "Max Score", value = 90,min=0, max=100)
+                     numericInput("maxScore", "Max Score", value = 100,min=0, max=100)
               )
             ),
             hr(),
