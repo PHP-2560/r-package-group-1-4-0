@@ -276,13 +276,17 @@ colnames(df) = c("University",
 # Choices for drop-downs
 
 ui = navbarPage("UniversityRankings", id="nav",
-                        
+      
+      # tab for data explorer                  
       tabPanel("Data explorer",
-            fluidRow(
+              # option to filter by public schools, private schools, or both
+               fluidRow(
               column(3,
                      selectInput("schools", "Schools", c("Public", "Private"), multiple=TRUE)
               )
             ),
+            # option to filter by a minimum and maximum score (as rated by US News)
+            # defaults to show all schools
             fluidRow(
               column(1,
                      numericInput("minScore", "Min Score", value = 0, min=0, max=100)
@@ -299,6 +303,7 @@ ui = navbarPage("UniversityRankings", id="nav",
 
 ##########################
 
+# filter function based on given minimum/maximum scores & school type(s)
 change_df = function(min, max, sch_typ) {
   df %>%
     dplyr::filter(score >= min,
@@ -307,7 +312,9 @@ change_df = function(min, max, sch_typ) {
                   )
 }
 
+
 server <- function(input, output,session) {
+  # updates data table based on given inputs
   output$df_out = DT::renderDataTable({
         change_df(input$minScore, input$maxScore, input$schools)
   })
