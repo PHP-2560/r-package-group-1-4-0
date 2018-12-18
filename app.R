@@ -1,15 +1,27 @@
 #install.packages("shiny")
-
+#install.packages("leaflet")
 library(shiny)
 library(ggplot2)
 library(dplyr)
 library(tools)
 library(shinythemes)
+library(leaflet)
+
+
+# Set value for the minZoom and maxZoom settings.
+leaflet(options = leafletOptions(minZoom = 0, maxZoom = 18))
+
+library(maps)
+mapStates = map("state", fill = TRUE, plot = FALSE)
+leaflet(data = mapStates) %>% addTiles() %>%
+  addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE)
+
+
 
 # Define UI for application
-ui <- fluidPage(
+ui <- fluidPage(theme = shinytheme("cerulean"),
   
-  themeSelector(),
+ 
   # Application title
   titlePanel("PHP2560/1560 Shiny App"),
   
@@ -76,6 +88,7 @@ server <- function(input, output) {
       geom_point() +
       labs(title = pretty_plot_title())
   })  
+  
   
   
   # Create the scatterplot object the plotOutput function is expecting
