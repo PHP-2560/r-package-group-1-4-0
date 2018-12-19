@@ -17,7 +17,7 @@ library(maps)
 leaflet(options = leafletOptions(minZoom = 0, maxZoom = 18))
 
 
-
+hd2017 = read.csv("hd2017.csv", header = T)
 #joining datasets with dplyr 
 hd2017 = hd2017 %>%
   mutate(location = paste(CITY,",", sep = "")) %>%
