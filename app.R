@@ -10,9 +10,18 @@ library(scales)
 library(lattice)
 library(tidyverse)
 library(shinythemes)
+library(tools)
+library(ipeds)
+library(maps)
+library(shinydashboard)
+library(leaflet.extras)
+library(htmltools)
 
 ui = navbarPage("UniversityRankings", id="nav",
                 
+                tabPanel("Map",
+                      leafletOutput("ShinyAppMap", width="100%", height="500")
+                ),
                 # tab for data explorer                  
                 tabPanel("Data explorer",
                          # option to filter by public schools, private schools, or both

@@ -47,8 +47,34 @@ var x = new Sound("beep.mp3",100,false);
     'Public' : function() {
     	Shiny.onInputChange('schools', "Public");
     },
-    'hello' : function() {
-    	x.start();
+    'why *v' : function(v) {
+    	if (v == "endowment") {
+    		Shiny.onInputChange('y', "Endowment");
+    	} else if (v == "acceptance rate") {
+    		Shiny.onInputChange('y', "Acc_Rate");
+    	} else if (v == "median start salary") {
+    		Shiny.onInputChange('y', "Median_Start_Sal");
+    	} else if (v == "score") {
+    		Shiny.onInputChange('y', "Score");
+    	} else if (v == "tuition") {
+    		Shiny.onInputChange('y', "Tuition");
+    	}  
+    },
+    'x *v' : function(v) {
+    	if (v == "endowment") {
+    		Shiny.onInputChange('x', "Endowment");
+    	} else if (v == "acceptance rate") {
+    		Shiny.onInputChange('x', "Acc_Rate");
+    	} else if (v == "median start salary") {
+    		Shiny.onInputChange('x', "Median_Start_Sal");
+    	} else if (v == "score") {
+    		Shiny.onInputChange('x', "Score");
+    	} else if (v == "tuition") {
+    		Shiny.onInputChange('x', "Tuition");
+    	}  
+    },
+    'title *x' : function(x){
+    	Shiny.onInputChange('plot_title', x);
     }
 };
   annyang.addCommands(commands);
@@ -57,5 +83,5 @@ var x = new Sound("beep.mp3",100,false);
 };
 
 $(function() {
-  setTimeout(initVoice, 10);
+  setTimeout(initVoice, 5);
 });
