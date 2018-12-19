@@ -8,15 +8,6 @@ library(shinythemes)
 library(leaflet)
 
 
-# Set value for the minZoom and maxZoom settings.
-leaflet(options = leafletOptions(minZoom = 0, maxZoom = 18))
-
-library(maps)
-mapStates = map("state", fill = TRUE, plot = FALSE)
-leaflet(data = mapStates) %>% addTiles() %>%
-  addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE)
-
-
 
 # Define UI for application
 ui <- fluidPage(theme = shinytheme("cerulean"),
