@@ -2,16 +2,11 @@ library(RColorBrewer)
 library(scales)
 library(lattice)
 library(dplyr)
+library(tidyverse)
+library(rebus)
+library(httr)
+library(rvest)
 library(shiny)
-library(tidyverse)
-library(rebus)
-library(httr)
-library(rvest)
-
-library(tidyverse)
-library(rebus)
-library(httr)
-library(rvest)
 
 ############### create df
 
@@ -293,7 +288,7 @@ ui = navbarPage("UniversityRankings", id="nav",
                      numericInput("minScore", "Min Score", value = 0, min=0, max=100)
               ),
               column(1,
-                     numericInput("maxScore", "Max Score", value = 100, min=0, max=100)
+                     numericInput("maxScore", "Max Score", value = 90,min=0, max=100)
               )
             ),
             hr(),
@@ -304,49 +299,19 @@ ui = navbarPage("UniversityRankings", id="nav",
 
 ##########################
 
-server <- function(input, output,session) {
-  observe({
-    schools <- if (is.null(input$schools)) character(0) else {
-      filter(df, School_Type %in% input$schools) %>%
-        `$`('School') %>%
-        unique() %>%
-        sort()
-    }
-    stillSelected <- isolate(input$schools[input$schools %in% schools])
-    updateSelectInput(session, "schools", choices = schools,
-                      selected = stillSelected)
-  })
-  # 
-  # observe({
-  #   zipcodes <- if (is.null(input$states)) character(0) else {
-  #     cleantable %>%
-  #       filter(State %in% input$states,
-  #              is.null(input$cities) | City %in% input$cities) %>%
-  #       `$`('Zipcode') %>%
-  #       unique() %>%
-  #       sort()
-  #   }
-  #   stillSelected <- isolate(input$zipcodes[input$zipcodes %in% zipcodes])
-  #   updateSelectInput(session, "zipcodes", choices = zipcodes,
-  #                     selected = stillSelected)
-  # })
-  # 
- 
-  
-  output$df_out <- DT::renderDataTable({
-    df 
-    %>%
-    dplyr::filter(
-      Score >= input$minScore,
-      Score <= input$maxScore,
-      is.null(input$states) | State %in% input$states
-      ) #%>%
-      # mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
-      # 
-    action <- DT::dataTableAjax(session, df)
-    
-    DT::datatable(df, escape = FALSE) #options = list(ajax = list(url = action)),
-  })
+change_df = function(min, max, sch_typ) {
+  df %>%
+    dplyr::filter(score >= min,
+                  score <= max,
+                  is.null(sch_typ) | school_type %in% sch_typ
+                  )
 }
+
+server <- function(input, output,session) {
+  output$df_out = DT::renderDataTable({
+        change_df(input$minScore, input$maxScore, input$schools)
+  })
+  
+}  
 
 shinyApp(ui = ui, server = server)
